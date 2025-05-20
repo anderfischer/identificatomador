@@ -595,21 +595,37 @@
             }, 5000);
         }
 
-        // Verifica em qual tag a raiz do CNPJ está contida
+        // Verifica em qual tag a raiz do CNPJ/CPF está contida
         function checkCnpjLocation(xmlContent, cnpjRoot) {
             const tagsToCheck = [
-                { tag: 'emit', message: 'O papel do tomador neste documento é Emitente. Informe esse papel para CNPJ abaixo na emissão.' },
-                { tag: 'exped', message: 'O papel do tomador neste documento é Expedidor. Informe esse papel para CNPJ abaixo na emissão.' },
-                { tag: 'receb', message: 'O papel do tomador neste documento é Recebedor.  Informe esse papel para CNPJ abaixo na emissão.' }
+                { tag: 'emit', message: 'O papel do tomador neste documento é Emitente.' },
+                { tag: 'exped', message: 'O papel do tomador neste documento é Expedidor.' },
+                { tag: 'receb', message: 'O papel do tomador neste documento é Recebedor.' },
+                { 
+                    tag: 'dest', 
+                    message: 'O papel do tomador neste documento é Destinatário. Informe esse papel para o documento abaixo na emissão.',
+                    pattern: /<dest>.*?<(CNPJ|CPF)>(\d+)<\/\1>.*?<\/dest>/is
+                }
             ];
 
             let foundTag = null;
             
             for (const item of tagsToCheck) {
-                const regex = new RegExp(`<${item.tag}>.*?<CNPJ>${cnpjRoot}\\d{6}</CNPJ>.*?</${item.tag}>`, 'is');
-                if (regex.test(xmlContent)) {
-                    foundTag = item;
-                    break;
+                let regex;
+                if (item.tag === 'dest') {
+                    // Verificação especial para dest que pode ter CNPJ ou CPF
+                    const match = xmlContent.match(item.pattern);
+                    if (match && match[2].startsWith(cnpjRoot)) {
+                        foundTag = item;
+                        break;
+                    }
+                } else {
+                    // Verificação padrão para outras tags
+                    regex = new RegExp(`<${item.tag}>.*?<CNPJ>${cnpjRoot}\\d{6}<\/CNPJ>.*?<\/${item.tag}>`, 'is');
+                    if (regex.test(xmlContent)) {
+                        foundTag = item;
+                        break;
+                    }
                 }
             }
             
