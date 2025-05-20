@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identificador de Tomador CT-e</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --warning: #f8961e;
+            --danger: #f94144;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --border-radius: 8px;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7ff;
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: var(--gray);
+            font-size: 1.1rem;
+        }
+
+        .input-section, .output-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--secondary);
+            font-size: 1.2rem;
+        }
+
+        .section-title i {
+            margin-right: 10px;
+            font-size: 1.4rem;
+        }
+
+        .file-upload-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .file-upload-label {
+            display: block;
+            padding: 25px;
+            background-color: var(--light);
+            border: 2px dashed #ced4da;
+            border-radius: var(--border-radius);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .file-upload-label:hover {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+
+        .file-upload-label i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .file-upload-label span {
+            display: block;
+            margin-top: 5px;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        #fileUpload {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .divider::before, .divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .divider::before {
+            margin-right: 15px;
+        }
+
+        .divider::after {
+            margin-left: 15px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            resize: vertical;
+            transition: var(--transition);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: var(--gray);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #3aa8d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(76, 201, 240, 0.3);
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            display: none;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .status.success {
+            background-color: rgba(76, 201, 240, 0.1);
+            border-left: 4px solid var(--success);
+            color: #1a6d8f;
+            display: block;
+            opacity: 1;
+        }
+
+        .status.error {
+            background-color: rgba(249, 65, 68, 0.1);
+            border-left: 4px solid var(--danger);
+            color: #c82333;
+            display: block;
+            opacity: 1;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            background-color: var(--light);
+            padding: 12px 15px;
+            border-radius: var(--border-radius);
+            margin-top: 15px;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .file-info i {
+            margin-right: 12px;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .result-container {
+            background-color: var(--light);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .info-title {
+            font-size: 1.1rem;
+            color: var(--secondary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .info-title i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+
+        .cnpj-display {
+            font-family: monospace;
+            font-size: 1.2rem;
+            padding: 10px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .cnpj-root {
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .company-name {
+            font-size: 1.1rem;
+            color: var(--dark);
+            margin-top: 10px;
+            padding: 10px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+
+        .info-message {
+            font-size: 1rem;
+            color: var(--dark);
+            margin-top: 15px;
+            padding: 12px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            text-align: center;
+            font-weight: 500;
+            border-left: 4px solid var(--success);
+        }
+
+        .warning-message {
+            font-size: 1rem;
+            color: var(--dark);
+            margin-top: 15px;
+            padding: 12px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            text-align: center;
+            font-weight: 500;
+            border-left: 4px solid var(--warning);
+        }
+
+        .info-section {
+            margin-bottom: 20px;
+        }
+
+        .toma-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .toma-table th, .toma-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .toma-table th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 500;
+        }
+
+        .toma-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .toma-table tr:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+
+        .highlight {
+            background-color: rgba(76, 201, 240, 0.2) !important;
+            font-weight: 600;
+        }
+		
+		.highlight-identified {
+            background-color: rgba(249, 65, 68, 0.2) !important;
+            font-weight: 600;
+            color: #d62c2f;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1><i class="fas fa-truck"></i> Identificador de Tomador CT-e</h1>
+                <p>Identifique automaticamente o emitente anterior e papel do tomador em documentos XML</p>
+            </div>
+
+            <div class="input-section">
+                <div class="section-title">
+                    <i class="fas fa-file-upload"></i>
+                    <h2>Carregar Arquivo XML</h2>
+                </div>
+                
+                <div class="file-upload-wrapper">
+                    <label for="fileUpload" class="file-upload-label">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <strong>Clique para selecionar um arquivo XML</strong>
+                        <span>Arraste e solte o arquivo aqui</span>
+                    </label>
+                    <input type="file" id="fileUpload" accept=".xml" />
+                </div>
+                
+                <div id="fileInfo" class="file-info" style="display: none;">
+                    <i class="fas fa-file-code"></i>
+                    <span id="fileName"></span>
+                </div>
+
+                <div class="divider">OU</div>
+                
+                <div class="section-title">
+                    <i class="fas fa-paste"></i>
+                    <h2>Cole seu XML manualmente</h2>
+                </div>
+                <textarea id="xmlInput" placeholder="Cole o conteúdo do XML aqui..."></textarea>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="identifyTomador()">
+                    <i class="fas fa-search"></i> Identificar
+                </button>
+                <button class="btn btn-secondary" onclick="clearAll()">
+                    <i class="fas fa-broom"></i> Limpar Tudo
+                </button>
+            </div><br><br>
+
+            <div id="statusMessage" class="status"></div>
+
+            <div class="output-section">
+                <div class="section-title">
+                    <i class="fas fa-search-location"></i>
+                    <h2>Resultado da Identificação:</h2>
+                </div>
+                
+                <div id="resultContainer" class="result-container" style="display: none;">
+                    
+                    <!-- Tabela de Referência -->
+                    <table class="toma-table">
+						<thead>
+							<tr>
+								<th>Código</th>
+								<th>Tipo de Tomador informado na emissão:</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr id="row0">
+								<td>0</td>
+								<td>Remetente</td>
+							</tr>
+							<tr id="row1">
+								<td>1</td>
+								<td>Expedidor</td>
+							</tr>
+							<tr id="row2">
+								<td>2</td>
+								<td>Recebedor</td>
+							</tr>
+							<tr id="row3">
+								<td>3</td>
+								<td>Destinatário</td>
+							</tr>
+							<tr id="row4">
+								<td>4</td>
+								<td>Outros</td>
+							</tr>
+						</tbody>
+					</table><br><br>
+					
+					<!-- Seção 1: Identificação do Papel do Tomador -->
+                    <div id="roleInfo" class="info-section" style="display: none;">
+                        <div class="info-title">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Identificação do Tomador:</span>
+                        </div>
+                        <div id="roleMessage" class="info-message"></div>
+                        <div id="warningMessage" class="warning-message" style="display: none;">
+                            O tomador não tem papel definido neste documento, informe "Outros" como papel do tomador na emissão para corrigir o problema.
+                        </div>
+                    </div>
+                    
+                    <!-- Seção 2: Emitente do Documento Anterior -->
+                    <div id="additionalInfo" class="info-section" style="display: none;">
+                        <div class="info-title">
+                            <i class="fas fa-building"></i>
+                            <span>Emitente do Documento Anterior:</span>
+                        </div>
+						<div>CNPJ:</div>
+                        <div id="cnpjDisplay" class="cnpj-display"></div>
+						<div>Razão Social:</div>
+                        <div id="companyName" class="company-name"></div>
+                    </div>
+					
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mapeamento dos códigos de tomador
+        const tomadorMap = {
+            '0': { name: 'Remetente', description: 'O remetente original da mercadoria' },
+            '1': { name: 'Expedidor', description: 'O expedidor da mercadoria' },
+            '2': { name: 'Recebedor', description: 'O recebedor da mercadoria' },
+            '3': { name: 'Destinatário', description: 'O destinatário final da mercadoria' },
+            '4': { name: 'Outros', description: 'Outro tipo de tomador não especificado' }
+        };
+
+        // Elementos da interface
+        const fileUpload = document.getElementById('fileUpload');
+        const xmlInput = document.getElementById('xmlInput');
+        const resultContainer = document.getElementById('resultContainer');
+        const statusMessage = document.getElementById('statusMessage');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const additionalInfo = document.getElementById('additionalInfo');
+        const cnpjDisplay = document.getElementById('cnpjDisplay');
+        const companyName = document.getElementById('companyName');
+        const roleInfo = document.getElementById('roleInfo');
+        const roleMessage = document.getElementById('roleMessage');
+        const warningMessage = document.getElementById('warningMessage');
+
+        // Carrega o arquivo selecionado
+        fileUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Mostra informações do arquivo
+            fileName.textContent = `${file.name} (${formatFileSize(file.size)})`;
+            fileInfo.style.display = 'flex';
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                xmlInput.value = e.target.result;
+                showStatus('Arquivo carregado com sucesso!', 'success');
+            };
+            reader.onerror = function() {
+                showStatus('Erro ao ler o arquivo.', 'error');
+            };
+            reader.readAsText(file);
+        });
+
+        // Formata o tamanho do arquivo
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Mostra mensagens de status
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = 'status ' + type;
+            setTimeout(() => {
+                statusMessage.style.opacity = '1';
+            }, 100);
+            
+            // Esconde a mensagem após 5 segundos
+            setTimeout(() => {
+                statusMessage.style.opacity = '0';
+                setTimeout(() => {
+                    statusMessage.className = 'status';
+                    statusMessage.textContent = '';
+                }, 300);
+            }, 5000);
+        }
+
+        // Verifica em qual tag a raiz do CNPJ está contida
+        function checkCnpjLocation(xmlContent, cnpjRoot) {
+            const tagsToCheck = [
+                { tag: 'emit', message: 'O papel do tomador neste documento é Emitente. Informe esse papel para CNPJ abaixo na emissão.' },
+                { tag: 'exped', message: 'O papel do tomador neste documento é Expedidor. Informe esse papel para CNPJ abaixo na emissão.' },
+                { tag: 'receb', message: 'O papel do tomador neste documento é Recebedor.  Informe esse papel para CNPJ abaixo na emissão.' }
+            ];
+
+            let foundTag = null;
+            
+            for (const item of tagsToCheck) {
+                const regex = new RegExp(`<${item.tag}>.*?<CNPJ>${cnpjRoot}\\d{6}</CNPJ>.*?</${item.tag}>`, 'is');
+                if (regex.test(xmlContent)) {
+                    foundTag = item;
+                    break;
+                }
+            }
+            
+            return foundTag;
+        }
+
+        // Identifica o tomador e o emitente anterior
+        function identifyTomador() {
+            const xmlContent = xmlInput.value.trim();
+            
+            if (!xmlContent) {
+                showStatus('Por favor, carregue um arquivo XML ou cole o conteúdo na área de texto.', 'error');
+                return;
+            }
+            
+            try {
+                // Procura por <toma3><toma>X</toma></toma3>
+                const tomaRegex = /<toma3>\s*<toma>(\d)<\/toma>\s*<\/toma3>/i;
+                const tomaMatch = xmlContent.match(tomaRegex);
+                
+                if (tomaMatch && tomaMatch[1]) {
+                    const tomadorCode = tomaMatch[1];
+                    const tomador = tomadorMap[tomadorCode] || tomadorMap['4'];
+                    
+                    resultContainer.style.display = 'block';
+                    
+                    // Destaca a linha correspondente na tabela
+                    highlightTableRow(tomadorCode);
+                    
+                    // 1. Buscar informações do emitente do documento anterior
+                    const docAntRegex = /<docAnt>.*?<emiDocAnt>.*?<CNPJ>(\d{14})<\/CNPJ>.*?<xNome>([^<]+)<\/xNome>.*?<\/emiDocAnt>.*?<\/docAnt>/is;
+                    const docAntMatch = xmlContent.match(docAntRegex);
+                    
+                    if (docAntMatch && docAntMatch[1] && docAntMatch[2]) {
+                        const cnpj = docAntMatch[1];
+                        const raizCnpj = cnpj.substring(0, 8);
+                        const restoCnpj = cnpj.substring(8);
+                        const nomeEmitente = docAntMatch[2];
+                        
+                        cnpjDisplay.innerHTML = `
+                            <span class="cnpj-root">${raizCnpj}</span>${restoCnpj}
+                        `;
+                        companyName.textContent = nomeEmitente;
+                        additionalInfo.style.display = 'block';
+                        
+                        // 2. Verifica onde a raiz do CNPJ está localizada
+                        const foundTag = checkCnpjLocation(xmlContent, raizCnpj);
+                        
+                        if (foundTag) {
+                            roleMessage.textContent = foundTag.message;
+                            roleMessage.style.display = 'block';
+                            warningMessage.style.display = 'none';
+                        } else {
+                            roleMessage.style.display = 'none';
+                            warningMessage.style.display = 'block';
+                        }
+                        
+                        roleInfo.style.display = 'block';
+                    } else {
+                        additionalInfo.style.display = 'none';
+                        roleInfo.style.display = 'none';
+                    }
+                    
+                    showStatus(`Informações identificadas com sucesso!`, 'success');
+                } else {
+                    resultContainer.style.display = 'none';
+                    additionalInfo.style.display = 'none';
+                    roleInfo.style.display = 'none';
+                    showStatus('Nenhuma tag <toma> encontrada dentro de <toma3> no formato esperado.', 'error');
+                }
+            } catch (e) {
+                resultContainer.style.display = 'none';
+                additionalInfo.style.display = 'none';
+                roleInfo.style.display = 'none';
+                showStatus('Erro ao processar o XML: ' + e.message, 'error');
+                console.error(e);
+            }
+        }
+
+        // Destaca a linha da tabela correspondente ao código do tomador
+        function highlightTableRow(code) {
+            // Remove todos os highlights primeiro
+            for (let i = 0; i <= 4; i++) {
+                const row = document.getElementById(`row${i}`);
+                if (row) {
+                    row.classList.remove('highlight');
+                    row.classList.remove('highlight-identified');
+                }
+            }
+            
+            // Adiciona highlight na linha correspondente
+            const row = document.getElementById(`row${code}`);
+            if (row) row.classList.add('highlight-identified');
+        }
+
+        // Limpa tudo
+        function clearAll() {
+            fileUpload.value = '';
+            xmlInput.value = '';
+            resultContainer.style.display = 'none';
+            fileInfo.style.display = 'none';
+            additionalInfo.style.display = 'none';
+            roleInfo.style.display = 'none';
+            showStatus('Todos os campos foram limpos.', 'success');
+            
+            // Remove highlights da tabela
+            for (let i = 0; i <= 4; i++) {
+                const row = document.getElementById(`row${i}`);
+                if (row) row.classList.remove('highlight');
+            }
+        }
+
+        // Drag and drop
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropArea = document.querySelector('.file-upload-label');
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                dropArea.style.borderColor = 'var(--primary)';
+                dropArea.style.backgroundColor = 'rgba(67, 97, 238, 0.1)';
+            }
+            
+            function unhighlight() {
+                dropArea.style.borderColor = '#ced4da';
+                dropArea.style.backgroundColor = 'var(--light)';
+            }
+            
+            dropArea.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length) {
+                    fileUpload.files = files;
+                    const event = new Event('change');
+                    fileUpload.dispatchEvent(event);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
