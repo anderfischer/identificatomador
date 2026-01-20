@@ -595,41 +595,105 @@
             }, 5000);
         }
 
-        // Verifica em qual tag a raiz do CNPJ/CPF está contida
-        function checkCnpjLocation(xmlContent, cnpjRoot) {
-            const tagsToCheck = [
-                { tag: 'emit', message: 'O papel do tomador neste documento é Emitente.' },
-                { tag: 'exped', message: 'O papel do tomador neste documento é Expedidor.' },
-                { tag: 'receb', message: 'O papel do tomador neste documento é Recebedor.' },
-                { 
-                    tag: 'dest', 
-                    message: 'O papel do tomador neste documento é Destinatário. Informe esse papel para o documento abaixo na emissão.',
-                    pattern: /<dest>.*?<(CNPJ|CPF)>(\d+)<\/\1>.*?<\/dest>/is
+        // Extrai informações do tomador do XML
+        function extractTomadorInfo(xmlContent) {
+            // Padrões para encontrar informações do tomador
+            const patterns = [
+                // Tentativa 1: Procurar por toma3 > toma
+                { regex: /<toma3>.*?<toma>(\d)<\/toma>.*?<\/toma3>/is, type: 'toma3' },
+                // Tentativa 2: Procurar por toma diretamente (caso não tenha toma3)
+                { regex: /<toma[^>]*>(\d)<\/toma>/i, type: 'toma' },
+                // Tentativa 3: Procurar por toma dentro de ide
+                { regex: /<ide>.*?<toma>(\d)<\/toma>.*?<\/ide>/is, type: 'ide_toma' },
+                // Tentativa 4: Procurar por toma4 (CT-e 4.00)
+                { regex: /<toma4>.*?<toma>(\d)<\/toma>.*?<\/toma4>/is, type: 'toma4' }
+            ];
+            
+            for (const pattern of patterns) {
+                const match = xmlContent.match(pattern.regex);
+                if (match && match[1]) {
+                    return match[1];
+                }
+            }
+            
+            return null;
+        }
+
+        // Extrai informações do emitente anterior
+        function extractEmitenteAnterior(xmlContent) {
+            // Padrões para encontrar emitente anterior
+            const patterns = [
+                // Tentativa 1: Procurar em emiDocAnt
+                { regex: /<emiDocAnt>.*?<CNPJ>(\d{14})<\/CNPJ>.*?<xNome>([^<]+)<\/xNome>.*?<\/emiDocAnt>/is, type: 'emiDocAnt' },
+                // Tentativa 2: Procurar em docAnt > emiDocAnt
+                { regex: /<docAnt>.*?<emiDocAnt>.*?<CNPJ>(\d{14})<\/CNPJ>.*?<xNome>([^<]+)<\/xNome>.*?<\/emiDocAnt>.*?<\/docAnt>/is, type: 'docAnt_emiDocAnt' },
+                // Tentativa 3: Procurar em idDocAnt
+                { regex: /<idDocAnt>.*?<emiDocAnt>.*?<CNPJ>(\d{14})<\/CNPJ>.*?<xNome>([^<]+)<\/xNome>.*?<\/emiDocAnt>.*?<\/idDocAnt>/is, type: 'idDocAnt' }
+            ];
+            
+            for (const pattern of patterns) {
+                const match = xmlContent.match(pattern.regex);
+                if (match && match[1] && match[2]) {
+                    return { cnpj: match[1], nome: match[2] };
+                }
+            }
+            
+            return null;
+        }
+
+        // Verifica onde o CNPJ está localizado para determinar o papel
+        function findCnpjLocation(xmlContent, cnpjToFind) {
+            // Extrair apenas os primeiros 8 dígitos (raiz do CNPJ) para comparação
+            const cnpjRoot = cnpjToFind.substring(0, 8);
+            
+            // Padrões para diferentes tipos de participantes
+            const participantPatterns = [
+                {
+                    tag: 'emit',
+                    name: 'Emitente',
+                    regex: /<emit>.*?<CNPJ>(\d{14})<\/CNPJ>.*?<\/emit>/is
+                },
+                {
+                    tag: 'exped',
+                    name: 'Expedidor',
+                    regex: /<exped>.*?<CNPJ>(\d{14})<\/CNPJ>.*?<\/exped>/is
+                },
+                {
+                    tag: 'receb',
+                    name: 'Recebedor',
+                    regex: /<receb>.*?<CNPJ>(\d{14})<\/CNPJ>.*?<\/receb>/is
+                },
+                {
+                    tag: 'dest',
+                    name: 'Destinatário',
+                    regex: /<dest>.*?<(CNPJ|CPF)>(\d{14}|\d{11})<\/\1>.*?<\/dest>/is
+                },
+                {
+                    tag: 'rem',
+                    name: 'Remetente',
+                    regex: /<rem>.*?<CNPJ>(\d{14})<\/CNPJ>.*?<\/rem>/is
                 }
             ];
-
-            let foundTag = null;
             
-            for (const item of tagsToCheck) {
-                let regex;
-                if (item.tag === 'dest') {
-                    // Verificação especial para dest que pode ter CNPJ ou CPF
-                    const match = xmlContent.match(item.pattern);
-                    if (match && match[2].startsWith(cnpjRoot)) {
-                        foundTag = item;
-                        break;
+            for (const pattern of participantPatterns) {
+                const match = xmlContent.match(pattern.regex);
+                if (match) {
+                    // Verificar se o CNPJ encontrado corresponde ao que estamos procurando
+                    let foundCnpj = '';
+                    if (pattern.tag === 'dest') {
+                        // Para destinatário, pode ser CNPJ ou CPF
+                        foundCnpj = match[2];
+                    } else {
+                        foundCnpj = match[1];
                     }
-                } else {
-                    // Verificação padrão para outras tags
-                    regex = new RegExp(`<${item.tag}>.*?<CNPJ>${cnpjRoot}\\d{6}<\/CNPJ>.*?<\/${item.tag}>`, 'is');
-                    if (regex.test(xmlContent)) {
-                        foundTag = item;
-                        break;
+                    
+                    if (foundCnpj.startsWith(cnpjRoot)) {
+                        return pattern;
                     }
                 }
             }
             
-            return foundTag;
+            return null;
         }
 
         // Identifica o tomador e o emitente anterior
@@ -642,66 +706,93 @@
             }
             
             try {
-                // Procura por <toma3><toma>X</toma></toma3>
-                const tomaRegex = /<toma3>\s*<toma>(\d)<\/toma>\s*<\/toma3>/i;
-                const tomaMatch = xmlContent.match(tomaRegex);
+                // 1. Extrair código do tomador
+                const tomadorCode = extractTomadorInfo(xmlContent);
                 
-                if (tomaMatch && tomaMatch[1]) {
-                    const tomadorCode = tomaMatch[1];
+                if (tomadorCode && tomadorCode >= 0 && tomadorCode <= 4) {
                     const tomador = tomadorMap[tomadorCode] || tomadorMap['4'];
                     
+                    // Mostrar resultado
                     resultContainer.style.display = 'block';
                     
-                    // Destaca a linha correspondente na tabela
+                    // Destacar linha da tabela
                     highlightTableRow(tomadorCode);
                     
-                    // 1. Buscar informações do emitente do documento anterior
-                    const docAntRegex = /<docAnt>.*?<emiDocAnt>.*?<CNPJ>(\d{14})<\/CNPJ>.*?<xNome>([^<]+)<\/xNome>.*?<\/emiDocAnt>.*?<\/docAnt>/is;
-                    const docAntMatch = xmlContent.match(docAntRegex);
+                    // 2. Extrair emitente anterior
+                    const emitenteAnterior = extractEmitenteAnterior(xmlContent);
                     
-                    if (docAntMatch && docAntMatch[1] && docAntMatch[2]) {
-                        const cnpj = docAntMatch[1];
+                    if (emitenteAnterior) {
+                        const cnpj = emitenteAnterior.cnpj;
                         const raizCnpj = cnpj.substring(0, 8);
                         const restoCnpj = cnpj.substring(8);
-                        const nomeEmitente = docAntMatch[2];
                         
                         cnpjDisplay.innerHTML = `
                             <span class="cnpj-root">${raizCnpj}</span>${restoCnpj}
                         `;
-                        companyName.textContent = nomeEmitente;
+                        companyName.textContent = emitenteAnterior.nome;
                         additionalInfo.style.display = 'block';
                         
-                        // 2. Verifica onde a raiz do CNPJ está localizada
-                        const foundTag = checkCnpjLocation(xmlContent, raizCnpj);
+                        // 3. Verificar onde este CNPJ está localizado no XML
+                        const cnpjLocation = findCnpjLocation(xmlContent, cnpj);
                         
-                        if (foundTag) {
-                            roleMessage.textContent = foundTag.message;
+                        if (cnpjLocation) {
+                            roleMessage.textContent = `O CNPJ do emitente anterior (${raizCnpj}) foi encontrado como ${cnpjLocation.name} neste documento.`;
                             roleMessage.style.display = 'block';
                             warningMessage.style.display = 'none';
                         } else {
-                            roleMessage.style.display = 'none';
+                            roleMessage.textContent = `O CNPJ do emitente anterior (${raizCnpj}) não foi encontrado como participante direto neste documento.`;
+                            roleMessage.style.display = 'block';
                             warningMessage.style.display = 'block';
                         }
                         
                         roleInfo.style.display = 'block';
                     } else {
                         additionalInfo.style.display = 'none';
-                        roleInfo.style.display = 'none';
+                        roleMessage.textContent = `Código do tomador identificado: ${tomadorCode} - ${tomador.name}`;
+                        roleMessage.style.display = 'block';
+                        warningMessage.textContent = 'Não foi possível identificar o emitente anterior do documento.';
+                        warningMessage.style.display = 'block';
+                        roleInfo.style.display = 'block';
                     }
                     
-                    showStatus(`Informações identificadas com sucesso!`, 'success');
+                    showStatus(`Tomador identificado com sucesso! Código: ${tomadorCode}`, 'success');
                 } else {
                     resultContainer.style.display = 'none';
                     additionalInfo.style.display = 'none';
                     roleInfo.style.display = 'none';
-                    showStatus('Nenhuma tag <toma> encontrada dentro de <toma3> no formato esperado.', 'error');
+                    
+                    // Tentar mostrar informações mesmo sem código de tomador
+                    const emitenteAnterior = extractEmitenteAnterior(xmlContent);
+                    if (emitenteAnterior) {
+                        resultContainer.style.display = 'block';
+                        additionalInfo.style.display = 'block';
+                        
+                        const cnpj = emitenteAnterior.cnpj;
+                        const raizCnpj = cnpj.substring(0, 8);
+                        const restoCnpj = cnpj.substring(8);
+                        
+                        cnpjDisplay.innerHTML = `
+                            <span class="cnpj-root">${raizCnpj}</span>${restoCnpj}
+                        `;
+                        companyName.textContent = emitenteAnterior.nome;
+                        
+                        roleMessage.textContent = 'Emitente anterior identificado, mas código do tomador não encontrado.';
+                        roleMessage.style.display = 'block';
+                        warningMessage.textContent = 'Código do tomador não encontrado no XML. Verifique a estrutura do documento.';
+                        warningMessage.style.display = 'block';
+                        roleInfo.style.display = 'block';
+                        
+                        showStatus('Emitente anterior identificado, mas código do tomador não encontrado.', 'warning');
+                    } else {
+                        showStatus('Não foi possível identificar o código do tomador ou o emitente anterior no XML.', 'error');
+                    }
                 }
             } catch (e) {
+                console.error('Erro no processamento:', e);
                 resultContainer.style.display = 'none';
                 additionalInfo.style.display = 'none';
                 roleInfo.style.display = 'none';
                 showStatus('Erro ao processar o XML: ' + e.message, 'error');
-                console.error(e);
             }
         }
 
@@ -734,7 +825,10 @@
             // Remove highlights da tabela
             for (let i = 0; i <= 4; i++) {
                 const row = document.getElementById(`row${i}`);
-                if (row) row.classList.remove('highlight');
+                if (row) {
+                    row.classList.remove('highlight');
+                    row.classList.remove('highlight-identified');
+                }
             }
         }
 
